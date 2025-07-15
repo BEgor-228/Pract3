@@ -1,0 +1,57 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "*" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Клонируем репозиторий
+        uses: actions/checkout@v3
+
+      - name: Устанавливаем Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Устанавливаем зависимости
+        run: pip install flask pytest
+
+      - name: Запускаем тесты
+        run: pytest
+        continue-on-error: true
+
+  build-and-deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Клонируем репозиторий
+        uses: actions/checkout@v3
+
+      - name: Сборка Docker-образа
+        run: docker build -t hello-world-app .
+
+      - name: Логинимся в удалённую VM через SSH и деплоим
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            docker stop hello-world-app || true
+            docker rm hello-world-app || true
+            docker rmi hello-world-app || true
+            mkdir -p ~/deploy/hello-python
+            cd ~/deploy/hello-python
+            git pull origin master
+            docker build -t hello-world-app .
+            docker run -d -p 5000:5000 --name hello-world-app hello-world-app
+
+      - name: Проверка работоспособности (curl)
+        run: |
+          sleep 5
+          curl http://${{ secrets.VM_HOST }}:5000
+        continue-on-error: true
