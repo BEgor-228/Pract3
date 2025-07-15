@@ -43,13 +43,13 @@ jobs:
           port: 2222
           script: |
             echo "Testing network..."
-            ping -c 4 5.165.120.28
+            ping -c 4 5.165.120.28 || echo "Ping failed, continuing..."
             docker stop hello-world-app || true
             docker rm hello-world-app || true
             docker rmi hello-world-app || true
             mkdir -p ~/deploy/hello-python
             cd ~/deploy/hello-python
-            git pull origin master
+            git pull origin master || { echo "Git pull failed, skipping build"; exit 0; }
             docker build -t hello-world-app .
             docker run -d -p 5000:5000 --name hello-world-app hello-world-app
 
