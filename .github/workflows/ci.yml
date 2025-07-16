@@ -9,18 +9,18 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Клонируем репозиторий
+      - name: Клонирую репозиторий
         uses: actions/checkout@v3
 
-      - name: Устанавливаем Python
+      - name: Устанавливаю Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
-      - name: Устанавливаем зависимости
+      - name: Устанавливаю зависимости
         run: pip install flask pytest
 
-      - name: Запускаем тесты
+      - name: Запускаю тесты
         run: pytest
         continue-on-error: true
 
@@ -28,13 +28,13 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:
-      - name: Клонируем репозиторий
+      - name: Клонирую репозиторий
         uses: actions/checkout@v3
 
       - name: Сборка Docker-образа
         run: docker build -t hello-world-app .
 
-      - name: Логинимся в удалённую VM через SSH и деплоим
+      - name: Логинюсь в удалённую VM через SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VM_HOST }}
@@ -54,7 +54,7 @@ jobs:
             docker build -t hello-world-app .
             docker run -d -p 5000:5000 --name hello-world-app hello-world-app
 
-      - name: Проверка работоспособности (curl)
+      - name: Проверка работоспособности с помощью curl
         run: |
           sleep 5
           curl http://${{ secrets.VM_HOST }}:5000
