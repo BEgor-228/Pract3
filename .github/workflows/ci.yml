@@ -54,9 +54,3 @@ jobs:
             git pull origin master || { echo "Git pull failed, skipping build"; exit 0; }
             docker build -t hello-world-app .
             docker run -d -p 5000:5000 --name hello-world-app hello-world-app
-
-      - name: Проверка работоспособности с помощью curl
-        run: |
-          sleep 5
-          curl http://${{ secrets.VM_HOST }}:5000
-        continue-on-error: true
